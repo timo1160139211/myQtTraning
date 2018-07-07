@@ -27,6 +27,8 @@ FORMS    += mainwindow.ui \
 
 QT+=sql
 
-INCLUDEPATH += "C:\Program Files\MySQL\MySQL Server 8.0\include"
+INCLUDEPATH += "C:/mysql_backup_old/MySQL/include"
 
-LIBS += "C:\Program Files\MySQL\MySQL Server 8.0\lib\libmysql.lib"
+LIBS += "C:/mysql_backup_old/MySQL/lib/libmysql.lib"
+#LIBS += -LC:/mysql_backup_old/MySQL/lib \
+#    -lmysql

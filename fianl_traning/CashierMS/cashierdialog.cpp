@@ -58,3 +58,13 @@ void CashierDialog::show_Goods_infor()
 }
 
 
+
+/*
+    QSqlTableModel *model = new QSqlTableModel;
+    model->setTable("person");
+    model->setEditStrategy(QSqlTableModel::OnManualSubmit);
+    model->select();
+    ui->tableView->setModel(model);
+    ui->tableView->show();
+*/
+
