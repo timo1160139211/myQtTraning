@@ -12,6 +12,17 @@ CashierDialog::CashierDialog(QWidget *parent) :
 {
     ui->setupUi(this);
     show_Goods_infor();
+
+    //设置销售日期 为今天
+    ui->sellDate->setCalendarPopup(true);
+    QDate today = QDate::currentDate();
+    //设置时间范围为前后一个月
+    ui->sellDate->setDateRange(today.addDays(-30),today.addDays(30));
+
+    ui->barcodeLineEdit->setFocus();
+
+
+
 }
 
 CashierDialog::~CashierDialog()

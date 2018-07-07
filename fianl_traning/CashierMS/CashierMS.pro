@@ -15,11 +15,13 @@ TEMPLATE = app
 SOURCES += main.cpp\
         mainwindow.cpp \
     logindialog.cpp \
-    cashierdialog.cpp
+    cashierdialog.cpp \
+    connectionpool.cpp
 
 HEADERS  += mainwindow.h \
     logindialog.h \
-    cashierdialog.h
+    cashierdialog.h \
+    connectionpool.h
 
 FORMS    += mainwindow.ui \
     logindialog.ui \
