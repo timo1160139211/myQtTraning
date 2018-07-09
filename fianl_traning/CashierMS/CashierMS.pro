@@ -16,16 +16,25 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     logindialog.cpp \
     cashierdialog.cpp \
-    connectionpool.cpp
+    connectionpool.cpp \
+    usermodel.cpp \
+    purchasedialog.cpp \
+    memberadd.cpp
 
 HEADERS  += mainwindow.h \
     logindialog.h \
     cashierdialog.h \
-    connectionpool.h
+    connectionpool.h \
+    initdatabase.h \
+    usermodel.h \
+    purchasedialog.h \
+    memberadd.h
 
 FORMS    += mainwindow.ui \
     logindialog.ui \
-    cashierdialog.ui
+    cashierdialog.ui \
+    purchasedialog.ui \
+    memberadd.ui
 
 QT+=sql
 

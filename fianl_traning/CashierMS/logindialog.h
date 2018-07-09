@@ -2,6 +2,7 @@
 #define LOGINDIALOG_H
 
 #include <QDialog>
+#include "usermodel.h"
 
 namespace Ui {
 class LoginDialog;
@@ -15,6 +16,11 @@ public:
     explicit LoginDialog(QWidget *parent = 0);
     ~LoginDialog();
     
+    User* getCurrentUser(){
+        return currentUser;
+    }
+    User *currentUser;//当前用户
+
 private slots:
     void on_exitPushButton_clicked();
 
