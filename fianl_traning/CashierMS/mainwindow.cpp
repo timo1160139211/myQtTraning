@@ -5,7 +5,7 @@
 #include <QMessageBox>
 #include <QCloseEvent>
 #include <QDebug>
-
+#include "purchasedialog.h"
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -23,9 +23,11 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_logoutButton_clicked()
 {
-    this->close();
+
     LoginDialog* l = new LoginDialog;
     l->show();
+    this->close();
+
 }
 
 void MainWindow::setUser(User *user){
@@ -64,7 +66,35 @@ void MainWindow::setUser(User *user){
 void MainWindow::on_toCashierButton_clicked()
 {
 
-    CashierDialog *cashierdialog = new CashierDialog();
+    CashierDialog *cashierdialog = new CashierDialog(0,this->currentUser);
+    //cashierdialog->setUser(this->currentUser);
     cashierdialog->show();
     this->close();
+
+
+}
+
+void MainWindow::on_toStockButton_clicked()
+{
+    PurchaseDialog *p = new PurchaseDialog();
+    p->setUser(this->currentUser);
+    p->show();
+    this->close();
+
+}
+
+void MainWindow::on_exitSystemButton_clicked()
+{
+    switch( QMessageBox::information(this, tr("退出"),
+                                     tr("是否保存?"),
+                                     tr("直接退出"), tr("取消退出"),tr("备份后退出"),
+                                      0, 1)){
+        case 0:
+            this->close();
+            break;
+        case 1:
+        default:
+            break;
+    }
+
 }

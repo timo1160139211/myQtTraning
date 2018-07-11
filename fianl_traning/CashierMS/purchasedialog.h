@@ -20,6 +20,11 @@ public:
 
     void setUser(User *);
 
+private slots:
+    void on_pushButton_clicked();
+
+    void on_exitSystemButton_clicked();
+
 private:
     Ui::PurchaseDialog *ui;
 };

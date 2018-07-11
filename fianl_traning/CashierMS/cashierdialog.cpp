@@ -5,13 +5,17 @@
 #include <QMessageBox>
 #include <QtSql/QSqlQueryModel>
 #include <QtSql/QSqlTableModel>
+#include <QStandardItemModel>
+#include <QDebug>
+#include "mainwindow.h"
 
 CashierDialog::CashierDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::CashierDialog)
 {
     ui->setupUi(this);
-    show_Goods_infor();
+
+    this->currentDBConnection = ConnectionPool::openConnection();
 
     setFixedSize(this->width(), this->height());//禁止最大化显示
 
@@ -28,41 +32,60 @@ CashierDialog::CashierDialog(QWidget *parent) :
 
 }
 
+CashierDialog::CashierDialog(int i, User * u):
+    QDialog(),
+    ui(new Ui::CashierDialog)
+{
+    ui->setupUi(this);
+    this->currentUser = u;
+    this->currentDBConnection = ConnectionPool::openConnection();
+
+    setFixedSize(this->width(), this->height());//禁止最大化显示
+
+    //设置销售日期 为今天
+    ui->sellDate->setCalendarPopup(true);
+    QDate today = QDate::currentDate();
+    //设置时间范围为前后一个月
+    ui->sellDate->setDateRange(today.addDays(-30),today.addDays(30));
+
+    //当前用户
+    ui->cashierNameLineEdit->setText(this->currentUser->username);
+
+    ui->barcodeLineEdit->setFocus();
+
+    //显示表头
+    show_Goods_infor();
+
+}
+
+
 CashierDialog::~CashierDialog()
 {
     delete ui;
 }
 
-//为什么不显示    必须在model的构造函数里 加上db
 void CashierDialog::show_Goods_infor()
 {
-
     // 从数据库连接池里取得连接
-    QSqlDatabase db = ConnectionPool::openConnection();
-    qDebug() << "is open:" << db.isOpen();
-    qDebug() << "In thread run():" << db.connectionName();
+    qDebug() << "is open:" << this->currentDBConnection.isOpen();
+    qDebug() << "In thread run():" << this->currentDBConnection.connectionName();
 
     QTextCodec::setCodecForTr(QTextCodec::codecForName("GBK"));//UTF-8 GBK
 
-    this->model = new QSqlTableModel(this->parent(),db);
-//    QSqlTableModel *model = new QSqlTableModel;
-    model->setTable("Goods");
-    model->setSort(1, Qt::AscendingOrder);
 
-    model->setHeaderData(0,Qt::Horizontal,trUtf8("商品条码"));
-    model->setHeaderData(1,Qt::Horizontal,trUtf8("商品名称"));
-    model->setHeaderData(2,Qt::Horizontal,trUtf8("规格型号"));
-    model->setHeaderData(3,Qt::Horizontal,trUtf8("颜色"));
-    model->setHeaderData(4,Qt::Horizontal,trUtf8("销售价"));
-    model->setHeaderData(5,Qt::Horizontal,trUtf8("折扣"));
-    model->setHeaderData(6,Qt::Horizontal,trUtf8("折后单价"));
-    model->setHeaderData(7,Qt::Horizontal,trUtf8("销售数"));
-    model->setHeaderData(8,Qt::Horizontal,trUtf8("单位"));
-    model->setHeaderData(9,Qt::Horizontal,trUtf8("总金额"));
-    model->setHeaderData(10,Qt::Horizontal,trUtf8("备注"));
-    model->setHeaderData(11,Qt::Horizontal,trUtf8("系统备注"));
+    this->model = new QStandardItemModel(ui->dataTableView);
 
-//    model->select();
+    this->model->setHorizontalHeaderItem(0,new QStandardItem(trUtf8("商品条码")));
+    this->model->setHorizontalHeaderItem(1,new QStandardItem(trUtf8("商品类型")));
+    this->model->setHorizontalHeaderItem(2,new QStandardItem(trUtf8("品牌")));
+    this->model->setHorizontalHeaderItem(3,new QStandardItem(trUtf8("名称")));
+    this->model->setHorizontalHeaderItem(4,new QStandardItem(trUtf8("规格")));
+    this->model->setHorizontalHeaderItem(5,new QStandardItem(trUtf8("颜色")));
+
+    this->model->setHorizontalHeaderItem(6,new QStandardItem(trUtf8("单位")));
+    this->model->setHorizontalHeaderItem(7,new QStandardItem(trUtf8("单价")));
+    //this->model->setHorizontalHeaderItem(8,new QStandardItem(trUtf8("总金额")));
+    this->model->setHorizontalHeaderItem(8,new QStandardItem(trUtf8("备注")));
 
     ui->dataTableView->setModel(model);
     ui->dataTableView->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -70,11 +93,8 @@ void CashierDialog::show_Goods_infor()
     ui->dataTableView->resizeColumnsToContents();
     ui->dataTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
-    QHeaderView *header = ui->dataTableView->horizontalHeader();//->horizontalHeader();
-    header->setStretchLastSection(true);
-
     //释放连接，使其回归连接池
-    db.close();
+    this->currentDBConnection.close();
 }
 
 void CashierDialog::setUser(User *user){
@@ -84,24 +104,88 @@ void CashierDialog::setUser(User *user){
 void CashierDialog::on_searchGoodPushButton_clicked()
 {
     // 从数据库连接池里取得连接
-    QSqlDatabase db = ConnectionPool::openConnection();
+    this->currentDBConnection = ConnectionPool::openConnection();
 
     int i = ui->barcodeLineEdit->text().toInt();
 
-    this->model = new QSqlTableModel(this->parent(),db);
-    model->setTable("Goods");
+    QSqlQuery *query = new QSqlQuery(this->currentDBConnection);
 
-    /*在用户数据表里进行检索查询，匹配用户名和密码是否相同*/
-    model->setFilter(QObject::tr("Goods_Id = '%1'").arg(i));
+    query->exec(QObject::trUtf8("select * from Goods where Goods_Id = '%1'").arg(i));
 
-    model->select();
-//    model->insertRow((model->rowCount()+1);
+    //    ui->dataTableView;
+    if(query->next()){
 
-//emit(ui->dataTableView->dataChanged(1, 1));
+        int rowNum = model->rowCount();
+        model->setItem(rowNum,0,new QStandardItem(query->value(0).toString()));
+        model->setItem(rowNum,1,new QStandardItem(query->value(1).toString()));
+        model->setItem(rowNum,2,new QStandardItem(query->value(2).toString()));
+        model->setItem(rowNum,3,new QStandardItem(query->value(3).toString()));
+        model->setItem(rowNum,4,new QStandardItem(query->value(4).toString()));
+        model->setItem(rowNum,5,new QStandardItem(query->value(5).toString()));
+        model->setItem(rowNum,6,new QStandardItem(query->value(7).toString()));//第六列 不要。故value往后选1
+        model->setItem(rowNum,7,new QStandardItem(query->value(8).toString()));
+        //model->setItem(rowNum,8,new QStandardItem(query->value(9).toString()));
+        //model->setItem(rowNum,9,new QStandardItem(query->value(11).toString()));
 
-    ui->totalPriceEditLine->setText("12");
+        qDebug() << " model->columnCount()=" << model->columnCount();
+        qDebug() << " model->rowCount()" << model->rowCount();
+    }
 
-    ui->dataTableView->setModel(model);
+    //计算 (总和=原来的+当前值)
+    int totalPrice = ui->totalPriceEditLine->text().toInt() + query->value(8).toInt();
+    //显示总和
+    ui->totalPriceEditLine->setText(QString::number(totalPrice));
 
-    db.close();
+    this->currentDBConnection.close();
+}
+
+void CashierDialog::on_moneyInLineEdit_textChanged(const QString &arg1)
+{
+    //总价
+    int total = ui->totalPriceEditLine->text().toInt();
+    //实收
+    int in = ui->moneyInLineEdit->text().toInt();
+    //找零   实收-总价
+    ui->moneyOutLineEdit->setText(QString::number(in - total));
+}
+
+void CashierDialog::on_settlementPushButton_clicked()
+{
+    this->model->clear();
+    ui->barcodeLineEdit->clear();
+    ui->totalPriceEditLine->clear();
+    ui->moneyInLineEdit->clear();
+    ui->moneyOutLineEdit->clear();
+}
+
+void CashierDialog::on_pushButton_clicked()
+{
+    MainWindow *mainWindow = new MainWindow();
+    mainWindow->setUser(this->currentUser);
+    mainWindow->show();
+    this->close();
+
+}
+
+void CashierDialog::on_exitSystemButton_clicked()
+{
+    switch( QMessageBox::information(this, tr("退出"),
+                                     tr("是否保存?"),
+                                     tr("直接退出"), tr("取消退出"),tr("备份后退出"),
+                                      0, 1)){
+        case 0:
+            this->close();
+            break;
+        case 1:
+        default:
+            break;
+    }
+
+}
+
+void CashierDialog::on_pushButton_2_clicked()
+{   LoginDialog* l = new LoginDialog;
+    l->show();
+    this->close();
+
 }

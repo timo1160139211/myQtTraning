@@ -73,9 +73,8 @@ void LoginDialog::on_loginPushButton_clicked()
         MainWindow *mainWindow = new MainWindow();
         mainWindow->setUser(this->currentUser);
         mainWindow->show();
-            //cashierdialogWindow.show();
-
         this->close();
+
             qDebug() << "on_loginPushButton_clicked  login";
     }else{
         QMessageBox::information(this,QString("错误！"),QString("账号密码不正确!"),QMessageBox::Ok);

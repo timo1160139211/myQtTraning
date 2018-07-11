@@ -7,7 +7,8 @@
 #include <QtSql/QSqlTableModel>
 #include <QtSql>
 #include <QTableView>
-
+#include <QStandardItemModel>
+#include "logindialog.h"
 namespace Ui {
 class CashierDialog;
 }
@@ -18,6 +19,7 @@ class CashierDialog : public QDialog
     
 public:
     explicit CashierDialog(QWidget *parent = 0);
+    CashierDialog(int i, User * u);
     ~CashierDialog();
     
 
@@ -25,11 +27,22 @@ public:
     User *currentUser;//当前用户
     void setUser(User *);
 
-    QSqlTableModel *model;
+    QStandardItemModel *model;
 //    QTableView *tableView;
+    QSqlDatabase currentDBConnection;
 
 private slots:
     void on_searchGoodPushButton_clicked();
+
+    void on_moneyInLineEdit_textChanged(const QString &arg1);
+
+    void on_settlementPushButton_clicked();
+
+    void on_pushButton_clicked();
+
+    void on_exitSystemButton_clicked();
+
+    void on_pushButton_2_clicked();
 
 private:
 

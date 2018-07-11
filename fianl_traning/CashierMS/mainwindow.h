@@ -25,6 +25,10 @@ private slots:
 
     void on_toCashierButton_clicked();
 
+    void on_toStockButton_clicked();
+
+    void on_exitSystemButton_clicked();
+
 private:
     Ui::MainWindow *ui;
 };
